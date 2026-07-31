@@ -1,0 +1,66 @@
+# Runs the test suite on every push. This is deliberately the ONLY workflow, and it
+# never touches the shop PC: deploys stay manual via scripts\deploy.ps1, because a
+# live POS must not restart itself mid-trade and the mini-PC has no inbound path by
+# design (Tailscale only). CI here answers one question - does the COMMITTED state
+# pass? - which the local deploy gate can't, since it runs against a working tree.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# A follow-up push makes the in-flight run irrelevant; cancel it rather than pay for
+# both and read a stale result.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    # windows-latest matches the mini-PC this actually runs on. The suite is pure
+    # logic (no database, no .env, no secrets) so Linux would work too - verified -
+    # but matching the deployment platform removes any path/loader difference for
+    # what is a sub-second suite.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # ci (not install) so the run is built strictly from package-lock.json and a
+      # drifting lockfile fails loudly here instead of silently on the shop PC.
+      - run: npm ci
+
+      - run: npm test
+
+  # The portfolio demo is job-application-facing, so a commit that fails the tests
+  # must not reach the URL a recruiter clicks. Vercel's own git trigger is switched
+  # off for main in vercel.json (`git.deploymentEnabled`), which leaves deploy hooks
+  # working - so the demo now deploys from HERE, only after `test` has passed.
+  # One-time setup for the hook + secret: docs/demo-deploy.md.
+  deploy-demo:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Vercel demo deploy
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        # Skips cleanly when the secret isn't configured yet, so this can't turn the
+        # workflow red before the hook exists. -f makes curl fail the job on an HTTP
+        # error rather than "succeeding" against a dead hook.
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK is not set - skipping demo deploy (see docs/demo-deploy.md)."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Demo deploy triggered on Vercel."

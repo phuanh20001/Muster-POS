@@ -1,0 +1,4 @@
+# Order/loyalty live on the apex domain (Cloudflare Tunnel), not on Pages.
+# Attach www.<domain> to Pages — keep the apex <domain> on the tunnel.
+# Domain not yet registered for Dreamy Cafe; fill both in here and in config.js together.
+# See docs/marketing-pages.md

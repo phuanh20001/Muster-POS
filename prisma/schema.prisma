@@ -1,0 +1,493 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int           @id @default(autoincrement())
+  name         String
+  username     String        @unique
+  password     String
+  pin          String?
+  role         String        @default("STAFF")
+  status       String        @default("ACTIVE")
+  createdAt    DateTime      @default(now())
+  clockRecords   ClockRecord[]
+  orders         Order[]
+  cashMovements  CashMovement[]
+  reservations   Reservation[]
+  reservationSeries ReservationSeries[]
+}
+
+model Category {
+  id        Int                @id @default(autoincrement())
+  name      String             @unique
+  color     String             @default("#6B7280")
+  emoji     String             @default("☕")
+  products  Product[]
+  modifiers CategoryModifier[]
+}
+
+model Product {
+  id                Int           @id @default(autoincrement())
+  name              String
+  price             Decimal       @db.Decimal(10, 2)
+  description       String        @default("")
+  imageEmoji        String        @default("☕")
+  imageUrl          String?
+  available         Boolean       @default(true)
+  stock             Int?
+  lowStockThreshold Int           @default(5)
+  loyaltyEnabled    Boolean       @default(false)
+  printer           String        @default("FRONT")
+  isCombo           Boolean       @default(false)
+  categoryId        Int
+  category          Category      @relation(fields: [categoryId], references: [id])
+  orderItems        OrderItem[]
+  sizes             ProductSize[]
+  modifiers         ProductModifier[]
+  comboSlots        ComboSlot[]       @relation("ComboProductSlots")
+  comboOptions      ComboSlotOption[] @relation("ComboOptionProduct")
+}
+
+// A combo is a Product with isCombo=true (fixed price on Product.price). Its
+// makeup is a set of ordered slots; each slot offers one or more component
+// products. A slot with one option is a fixed item; several options = a
+// choose-from-group the cashier resolves at sale time. Sold combos record as a
+// single order line — components ride along as price-0 OrderItemModifier
+// snapshots (so they print) and never earn per-component stamps or stock.
+model ComboSlot {
+  id        Int               @id @default(autoincrement())
+  comboId   Int
+  label     String            @default("")
+  sortOrder Int               @default(0)
+  combo     Product           @relation("ComboProductSlots", fields: [comboId], references: [id], onDelete: Cascade)
+  options   ComboSlotOption[]
+}
+
+model ComboSlotOption {
+  id        Int       @id @default(autoincrement())
+  slotId    Int
+  productId Int
+  slot      ComboSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  product   Product   @relation("ComboOptionProduct", fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductSize {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  label     String
+  price     Decimal @db.Decimal(10, 2)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model ProductModifier {
+  id        Int                 @id @default(autoincrement())
+  productId Int
+  name      String
+  price     Decimal             @db.Decimal(10, 2)
+  available Boolean             @default(true)
+  product   Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  snapshots OrderItemModifier[]
+}
+
+model CategoryModifier {
+  id         Int                 @id @default(autoincrement())
+  categoryId Int
+  name       String
+  price      Decimal             @db.Decimal(10, 2)
+  available  Boolean             @default(true)
+  category   Category            @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  snapshots  OrderItemModifier[]
+}
+
+model Table {
+  id      Int     @id @default(autoincrement())
+  number  Int     @unique
+  label   String  @default("")
+  x       Float   @default(100)
+  y       Float   @default(100)
+  status  String  @default("AVAILABLE")
+  groupId String?
+  orders  Order[]
+}
+
+model Order {
+  id               Int         @id @default(autoincrement())
+  createdAt        DateTime    @default(now())
+  // Short per-day reference ("order 12") — mainly for staff (dockets are internal,
+  // for the baristas and cooks); a customer only meets it on the online tracking
+  // page or a printed receipt. Assigned from OrderDayCounter.
+  // id stays the permanent audit key — dailyNumber repeats
+  // every day, so it is only unique WITH businessDate (the local YYYY-MM-DD the
+  // number was drawn on, which is the fulfilment day for online orders, not the
+  // day the unpaid checkout was created). NULL on orders that predate the feature
+  // and on online orders still AWAITING_PAYMENT.
+  businessDate     String?
+  dailyNumber      Int?
+  total            Decimal     @db.Decimal(10, 2)
+  paymentMethod    String      @default("CASH")
+  cashAmount       Decimal     @default(0) @db.Decimal(10, 2)
+  amountPaid       Decimal     @default(0) @db.Decimal(10, 2)
+  change           Decimal     @default(0) @db.Decimal(10, 2)
+  status           String      @default("PENDING")
+  note             String      @default("")
+  tableId          Int?
+  tableNumber      String      @default("")
+  // tableNumber doubles as the customer name when there is no table. tableManual
+  // marks it as a hand-written table number (no Table row) so labels can tell the
+  // two apart.
+  tableManual      Boolean     @default(false)
+  userId           Int?
+  customerId       Int?
+  stampEarned      Int         @default(0)
+  freeItemRedeemed Boolean     @default(false)
+  discountAmount   Decimal     @default(0) @db.Decimal(10, 2)
+  tipAmount        Decimal     @default(0) @db.Decimal(10, 2)
+  surchargeType    String      @default("")
+  surchargeValue   Decimal     @default(0) @db.Decimal(10, 2)
+  surchargeAmount  Decimal     @default(0) @db.Decimal(10, 2)
+  manualDiscount   Decimal     @default(0) @db.Decimal(10, 2)
+  refundNote       String      @default("")
+  source           String      @default("POS")
+  prepMinutes      Int?
+  checkoutRef      String?     @unique
+  trackingToken    String?     @unique
+  // Partial unique index "Order_paymentIntentId_key" (migration 20260706050000)
+  // — one order per card payment ref; NULLs (cash orders) excluded. Raw SQL, as
+  // Prisma can't express a partial unique index.
+  paymentIntentId  String?
+  voucherId        Int?
+  paymentProvider         String  @default("SQUARE")
+  onlineReservationsHeld  Boolean @default(false)
+  table                   Table?  @relation(fields: [tableId], references: [id], onDelete: SetNull)
+  user             User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  customer         Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  voucher          Voucher?    @relation(fields: [voucherId], references: [id], onDelete: SetNull)
+  items            OrderItem[]
+  printJobs        PrintJob[]
+
+  // Indexes for the tables that grow forever. createdAt drives every date-range
+  // report/history query; the FK columns speed joins/filters as the table grows.
+  @@index([createdAt])
+  @@index([status])
+  @@index([source])
+  @@index([customerId])
+  @@index([userId])
+  // Belt-and-braces over the atomic counter: two tills can never end up handing
+  // two orders the same number on the same day. NULLs are distinct in Postgres,
+  // so unnumbered orders don't collide with each other.
+  @@unique([businessDate, dailyNumber])
+}
+
+// One row per trading day holding the last ticket number handed out. Bumped by a
+// single atomic INSERT .. ON CONFLICT DO UPDATE .. RETURNING (see lib/orderNumber.js)
+// so concurrent checkouts can't draw the same number; a new day inserts a fresh
+// row and numbering starts again at 1.
+model OrderDayCounter {
+  businessDate String   @id
+  lastNumber   Int      @default(0)
+  updatedAt    DateTime @default(now()) @updatedAt
+}
+
+model OrderItem {
+  id                  Int                 @id @default(autoincrement())
+  orderId             Int
+  productId           Int?
+  productName         String              @default("")
+  quantity            Int
+  unitPrice           Decimal             @db.Decimal(10, 2)
+  size                String              @default("")
+  notes               String              @default("")
+  priceAdjustment     Decimal             @default(0) @db.Decimal(10, 2)
+  priceAdjustmentNote String              @default("")
+  order               Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product             Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  modifiers           OrderItemModifier[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderItemModifier {
+  id                 Int               @id @default(autoincrement())
+  orderItemId        Int
+  modifierId         Int?
+  categoryModifierId Int?
+  name               String
+  price              Decimal           @db.Decimal(10, 2)
+  orderItem          OrderItem         @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  modifier           ProductModifier?  @relation(fields: [modifierId], references: [id], onDelete: SetNull)
+  categoryModifier   CategoryModifier? @relation(fields: [categoryModifierId], references: [id], onDelete: SetNull)
+
+  @@index([orderItemId])
+}
+
+model ClockRecord {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  type      String   // 'IN' | 'OUT'
+  timestamp DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@index([timestamp])
+}
+
+model CashSession {
+  // A partial unique index "CashSession_single_open" (migration
+  // 20260706040000) enforces at most one row with closedAt = NULL, so two
+  // tills can't be open at once. Not expressible in Prisma schema — raw SQL.
+  id           Int            @id @default(autoincrement())
+  openedAt     DateTime       @default(now())
+  closedAt     DateTime?
+  openingFloat Decimal        @default(0) @db.Decimal(10, 2)
+  closingCash  Decimal?       @db.Decimal(10, 2)
+  expectedCash Decimal?       @db.Decimal(10, 2)
+  variance     Decimal?       @db.Decimal(10, 2)
+  openedById   Int
+  closedById   Int?
+  note         String         @default("")
+  movements    CashMovement[]
+}
+
+model CashMovement {
+  id            Int          @id @default(autoincrement())
+  type          String       // 'IN' | 'OUT'
+  amount        Decimal      @db.Decimal(10, 2)
+  note          String       @default("")
+  createdAt     DateTime     @default(now())
+  cashSessionId Int?
+  cashSession   CashSession? @relation(fields: [cashSessionId], references: [id], onDelete: SetNull)
+  userId        Int?
+  user          User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([cashSessionId])
+  @@index([createdAt])
+}
+
+model StockItem {
+  id                Int      @id @default(autoincrement())
+  name              String
+  unit              String   @default("units")
+  quantity          Int?
+  lowStockThreshold Int      @default(5)
+  createdAt         DateTime @default(now())
+  receivingLines    StockReceivingLine[]
+}
+
+model Supplier {
+  id         Int              @id @default(autoincrement())
+  name       String
+  contact    String           @default("")
+  note       String           @default("")
+  createdAt  DateTime         @default(now())
+  expenses   Expense[]
+  receivings StockReceiving[]
+}
+
+// A logged operating expense (rent, utilities, wages, etc.) that feeds the P&L.
+model Expense {
+  id        Int       @id @default(autoincrement())
+  amount    Decimal   @db.Decimal(10, 2)
+  category  String
+  note      String    @default("")
+  spentAt   DateTime
+  supplierId Int?
+  supplier  Supplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+}
+
+// A stock purchase: received N units at $X. Bumps StockItem.quantity and its
+// total cost counts as Purchases in the P&L.
+model StockReceiving {
+  id         Int                  @id @default(autoincrement())
+  supplierId Int?
+  supplier   Supplier?            @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  receivedAt DateTime
+  note       String               @default("")
+  totalCost  Decimal              @db.Decimal(10, 2)
+  userId     Int?
+  createdAt  DateTime             @default(now())
+  lines      StockReceivingLine[]
+}
+
+model StockReceivingLine {
+  id          Int            @id @default(autoincrement())
+  receivingId Int
+  receiving   StockReceiving @relation(fields: [receivingId], references: [id], onDelete: Cascade)
+  stockItemId Int?
+  // SetNull: deleting a StockItem severs the link (keeps the receiving's cost
+  // record) and the reversal safely skips a null stockItemId.
+  stockItem   StockItem?     @relation(fields: [stockItemId], references: [id], onDelete: SetNull)
+  name        String
+  quantity    Int
+  unitCost    Decimal        @db.Decimal(10, 2)
+  lineCost    Decimal        @db.Decimal(10, 2)
+}
+
+model Customer {
+  id              Int      @id @default(autoincrement())
+  name            String
+  phone           String   @unique
+  stampsCollected Int      @default(0)
+  stampsRedeemed  Int      @default(0)
+  createdAt       DateTime @default(now())
+  orders          Order[]
+}
+
+model Voucher {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique
+  type        String    @default("PERCENT") // 'PERCENT' | 'FIXED' | 'FREE_ITEM'
+  value       Decimal   @default(0) @db.Decimal(10, 2)
+  active      Boolean   @default(true)
+  expiresAt   DateTime?
+  usageLimit  Int?
+  timesUsed   Int       @default(0)
+  minSubtotal Decimal   @default(0) @db.Decimal(10, 2)
+  customerId  Int?
+  createdAt   DateTime  @default(now())
+  orders      Order[]
+}
+
+model TerminalReader {
+  id             Int     @id @default(autoincrement())
+  name           String  @unique
+  label          String  @default("")
+  stripeReaderId String  @default("")
+  squareDeviceId String  @default("")
+  enabled        Boolean @default(true)
+}
+
+model PaymentSettings {
+  id               Int      @id @default(1)
+  cardSurchargeType  String   @default("")
+  cardSurchargeValue Decimal  @default(0) @db.Decimal(10, 2)
+  blockedBrands      String[] @default([])
+  provider           String   @default("SQUARE")
+  onlineProvider     String   @default("SQUARE")
+  terminalWaitSeconds Int      @default(120)
+  updatedAt        DateTime @updatedAt
+}
+
+model ShiftSettings {
+  id                  Int      @id @default(1)
+  shiftRoutineEnabled Boolean  @default(true)
+  updatedAt           DateTime @updatedAt
+}
+
+model ReservationSettings {
+  id                  Int      @id @default(1)
+  reminderLeadMinutes Int      @default(120)
+  updatedAt           DateTime @updatedAt
+}
+
+model FeatureSettings {
+  id                   Int      @id @default(1)
+  expensesEnabled      Boolean  @default(false)
+  purchasingEnabled    Boolean  @default(false)
+  productImagesEnabled Boolean  @default(true)
+  vouchersEnabled      Boolean  @default(false)
+  // On: the cashier types the number of the stand handed to the customer, and the
+  // floor plan is unused (a typed number has no Table row to mark occupied).
+  manualTableNumbers   Boolean  @default(false)
+  // Highest quick-pick button offered in manual mode — set it to how many number
+  // stands the shop actually has.
+  tableNumberMax       Int      @default(20)
+  updatedAt            DateTime @updatedAt
+}
+
+// Opening hours for the public online-order page. Per-day hours live in
+// OnlineOrderHours; this row holds the switches that apply to every day.
+model OnlineOrderSettings {
+  id              Int      @id @default(1)
+  hoursEnabled    Boolean  @default(false)
+  acceptingOrders Boolean  @default(true)
+  closedMessage   String   @default("")
+  updatedAt       DateTime @updatedAt
+}
+
+// One row per weekday (0=Sun..6=Sat) so the shop can trade different hours on
+// weekdays vs weekends. Times are "HH:MM" in the shop's local timezone (the
+// server clock is pinned to it — see DEPLOY.md). A closeTime <= openTime means
+// the window wraps past midnight (e.g. 18:00–02:00).
+model OnlineOrderHours {
+  id        Int     @id @default(autoincrement())
+  dayOfWeek Int     @unique
+  closed    Boolean @default(false)
+  openTime  String  @default("07:00")
+  closeTime String  @default("18:00")
+}
+
+model PrinterConfig {
+  id                    Int     @id @default(autoincrement())
+  name                  String  @unique
+  description           String  @default("")
+  ip                    String  @default("")
+  port                  Int     @default(9100)
+  printerType           String  @default("GENERIC")
+  paperWidth            Int     @default(80)
+  printReceipts         Boolean @default(true)
+  autoPrintCardReceipts Boolean @default(true)
+  autoPrintDockets      Boolean @default(true)
+  autoOpenDrawer        Boolean @default(true)
+  openDrawer            Boolean @default(false)
+  printDockets          Boolean @default(true)
+  enabled               Boolean @default(true)
+}
+
+model PrintJob {
+  id           Int      @id @default(autoincrement())
+  orderId      Int
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  station      String
+  status       String   @default("FAILED")
+  errorMessage String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([orderId, station])
+}
+
+model Reservation {
+  id          Int               @id @default(autoincrement())
+  name        String
+  phone       String?
+  scheduledAt DateTime
+  partySize   Int
+  note        String?
+  status      String            @default("CONFIRMED")
+  createdAt   DateTime          @default(now())
+  createdBy   User?             @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById Int?
+  series      ReservationSeries? @relation(fields: [seriesId], references: [id], onDelete: SetNull)
+  seriesId    Int?
+
+  @@unique([seriesId, scheduledAt])
+}
+
+model ReservationSeries {
+  id               Int           @id @default(autoincrement())
+  name             String
+  phone            String?
+  partySize        Int
+  note             String?
+  time             String
+  frequency        String        @default("WEEKLY")
+  daysOfWeek       Int[]         @default([])
+  intervalWeeks    Int           @default(1)
+  monthlyOrdinal   Int?
+  monthlyWeekday   Int?
+  anchorDate       DateTime
+  generatedThrough DateTime
+  active           Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  createdBy        User?         @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdById      Int?
+  reservations     Reservation[]
+}

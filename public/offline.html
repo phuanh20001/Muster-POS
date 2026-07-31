@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dreamy Cafe — Offline</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; background: #fff; color: #111827;
+           display: flex; min-height: 100vh; align-items: center; justify-content: center; margin: 0; }
+    .box { text-align: center; padding: 2rem; max-width: 22rem; }
+    .emoji { font-size: 3rem; margin-bottom: 0.5rem; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+    p { color: #6b7280; font-size: 0.9rem; margin: 0 0 1.25rem; }
+    button { background: #111827; color: #fff; border: 0; border-radius: 0.75rem;
+             padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="emoji">☕</div>
+    <h1>You're offline</h1>
+    <p>The POS couldn't reach the server. Reconnect to the network and try again — any order in progress is kept.</p>
+    <button onclick="location.reload()">Retry</button>
+  </div>
+</body>
+</html>

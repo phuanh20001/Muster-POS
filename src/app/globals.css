@@ -1,0 +1,228 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.installed-app {
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.installed-app .staff-nav {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-left: max(0.75rem, env(safe-area-inset-left, 0px));
+  padding-right: max(0.75rem, env(safe-area-inset-right, 0px));
+}
+
+.installed-app .staff-nav-tabs {
+  scrollbar-width: none;
+}
+
+.installed-app .staff-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.installed-app .pos-shell {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.installed-app .pos-category-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.installed-app .pos-shell input,
+.installed-app .pos-shell textarea,
+.installed-app .pos-shell [contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.staff-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+.pos-mobile-cart {
+  bottom: 4rem;
+}
+
+.installed-app .pos-mobile-cart {
+  bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+}
+
+.installed-app button,
+.installed-app a[role='button'],
+.installed-app [type='button'] {
+  touch-action: manipulation;
+}
+
+/* Branded browser-print reports (Payroll, Stock, …) — popup-free, Electron-safe.
+   Each report renders into a body-level portal (.print-report) so it escapes the
+   app's overflow-hidden/relative shell; only that node prints. */
+.print-report {
+  display: none;
+}
+
+@page portrait {
+  size: A4 portrait;
+  margin: 14mm;
+}
+
+@page landscape {
+  size: A4 landscape;
+  margin: 12mm;
+}
+
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  body > *:not(.print-report) {
+    display: none !important;
+  }
+
+  .print-report {
+    display: block !important;
+    color: #111827;
+    font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-report.landscape {
+    page: landscape;
+  }
+
+  .print-report.portrait {
+    page: portrait;
+  }
+
+  .print-report .pr-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #111827;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .print-report .pr-brand {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  .print-report .pr-brand small {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .print-report .pr-meta {
+    text-align: right;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  .print-report .pr-meta .pr-range {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .print-report table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .print-report thead th {
+    text-align: left;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    border-bottom: 1px solid #d1d5db;
+    padding: 8px 10px;
+  }
+
+  .print-report th.num,
+  .print-report td.num {
+    text-align: right;
+  }
+
+  .print-report tbody td {
+    padding: 9px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: top;
+  }
+
+  .print-report td.staff {
+    font-weight: 600;
+  }
+
+  .print-report td.role {
+    color: #6b7280;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .print-report td.total {
+    font-weight: 700;
+  }
+
+  .print-report .pr-hrs {
+    font-weight: 600;
+  }
+
+  .print-report .pr-shift {
+    font-size: 9px;
+    color: #9ca3af;
+    white-space: nowrap;
+  }
+
+  .print-report .pr-dash {
+    color: #d1d5db;
+  }
+
+  .print-report tfoot td {
+    padding: 10px;
+    border-top: 2px solid #111827;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .print-report tfoot td.grand {
+    font-size: 13px;
+  }
+
+  .print-report .pr-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+}

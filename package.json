@@ -1,0 +1,42 @@
+{
+  "name": "dreamy-cafe",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/bump-sw-cache.js && next dev",
+    "build": "node scripts/bump-sw-cache.js && prisma generate && next build",
+    "vercel-build": "prisma migrate deploy && npm run build",
+    "prestart": "node scripts/bump-sw-cache.js",
+    "start": "prisma migrate deploy && next start",
+    "test": "node --import ./test/register.mjs --test test/**/*.test.js",
+    "claude:sync": "node scripts/sync-claude-md.js",
+    "claude:check": "node scripts/sync-claude-md.js --check",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "db:seed:demo": "node prisma/seed-demo.js",
+    "db:studio": "prisma studio",
+    "desktop": "cd desktop && npm start",
+    "desktop:dist": "cd desktop && npm run dist"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
+    "decimal.js": "^10.6.0",
+    "escpos": "^3.0.0-alpha.6",
+    "escpos-network": "^3.0.0-alpha.5",
+    "jose": "^6.2.3",
+    "next": "^16.2.6",
+    "react": "^18",
+    "react-dom": "^18",
+    "square": "^44.1.0",
+    "stripe": "^22.2.0"
+  },
+  "devDependencies": {
+    "postcss": "^8",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.1"
+  }
+}

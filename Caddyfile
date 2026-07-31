@@ -1,0 +1,63 @@
+# DreamyCafe — LAN TLS reverse proxy
+#
+# Terminates HTTPS for the Wi-Fi iPad tills and forwards to Next.js on loopback.
+# The tablet <-> mini-PC hop is now encrypted; the mini-PC <-> Next hop stays on
+# 127.0.0.1 (loopback is never on the wire, so it can't be sniffed).
+#
+# Certs come from Caddy's own internal CA (`tls internal`) — fully offline, no
+# internet needed to issue or renew. Trust Caddy's root CA once on each iPad
+# (see docs/lan-tls.md). The mini-PC does NOT trust it automatically: running as
+# the SYSTEM service, Caddy's own trust-store install fails with "add cert
+# failed: The request is not supported", so install-caddy-service.ps1 imports the
+# root into LocalMachine\Root itself. A healthy start logs "root certificate is
+# already trusted by system"; if it ever logs the failure again, re-run that
+# script. Never smoke-test this with `curl -k` — it passes on a broken chain.
+#
+# The public zone (customers) is NOT served here — it goes cloudflared ->
+# localhost:3000 directly, with TLS terminated at the Cloudflare edge. Do not
+# route the tunnel through Caddy (the x-dreamy-zone Transform Rule must stay on
+# the direct path).
+#
+# Set the site address to this mini-PC's STATIC LAN IP. It defaults to the
+# 192.168.1.10 used throughout DEPLOY.md; override without editing this file by
+# setting POS_LAN_HOST in the DreamyCafeCaddy service environment.
+#
+# The cert deliberately covers TWO names: the static IP and the mDNS hostname
+# (POS_LAN_NAME, default dreamy-cafe.local). This is insurance against the one
+# expensive mistake in this setup. A cert issued only for an IP is PINNED to that
+# IP, so if the address has to change at the shop - wrong DHCP pool, a router
+# swap - every tablet shows a certificate error and each one needs its root CA
+# re-trusted by hand. With the hostname on the cert as well, the tablets follow
+# the machine to a new address and the fix is one setting instead of a lap of the
+# shop with an iPad. Bookmark the hostname on the tablets; the IP is the fallback
+# for when mDNS misbehaves, which is the opposite of the usual advice and correct
+# here precisely because the IP is the thing most likely to move.
+
+{
+	# No local admin API — nothing on this box needs to reconfigure Caddy at runtime.
+	admin off
+}
+
+https://{$POS_LAN_HOST:192.168.1.10}, https://{$POS_LAN_NAME:dreamy-cafe.local} {
+	tls internal
+
+	encode zstd gzip
+
+	reverse_proxy 127.0.0.1:3000 {
+		# Overwrite (not append) X-Forwarded-For with the real tablet IP. clientIp()
+		# in src/lib/ratelimit.js reads the FIRST XFF entry, so a clean single value
+		# means a client can't forge it to dodge the per-tablet PIN lockout.
+		# Caddy logs this as an "Unnecessary header_up" warning on every start.
+		# Ignore it: Caddy's default APPENDS the real IP after any client-sent
+		# value, leaving the forged entry first. Removing this line to silence the
+		# warning silently reopens the lockout bypass.
+		header_up X-Forwarded-For {remote_host}
+
+		# Strip any inbound zone header: the Caddy/LAN path is always the LAN. The
+		# public zone secret is set only by Cloudflare on the tunnel path.
+		header_up -X-Dreamy-Zone
+	}
+
+	# No HSTS on purpose: with an internal CA we must not pin a device to HTTPS
+	# before its one-time root-CA trust is installed, or it would hard-fail.
+}

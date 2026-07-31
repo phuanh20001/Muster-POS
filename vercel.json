@@ -1,0 +1,10 @@
+{
+  "crons": [
+    { "path": "/api/demo/reseed", "schedule": "0 15 * * *" }
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  }
+}

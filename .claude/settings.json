@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/inject-rules.js"],
+            "statusMessage": "Loading DreamyCafe rules"
+          }
+        ]
+      }
+    ]
+  }
+}
