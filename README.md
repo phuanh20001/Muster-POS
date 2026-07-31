@@ -20,6 +20,7 @@ Not a tutorial clone. This is a full-stack app that a working café uses: staff 
 
 - **Stack:** Next.js 16 (App Router) · JavaScript · PostgreSQL + Prisma · Tailwind · Stripe & Square · ESC/POS thermal printers · Electron kiosk shell
 - **Scale:** 45+ Prisma migrations · role-based back office · dual payment processors · offline-tolerant PWA · self-hosted behind a Cloudflare Tunnel
+- **Tested:** 65 unit tests, zero framework dependencies, ~0.4 s — covering the money, pricing, loyalty, voucher and zone-boundary paths
 
 ---
 
@@ -35,7 +36,7 @@ Every monetary value flows through `decimal.js` via a single [`src/lib/money.js`
 - Money is stored as Postgres `Decimal(10,2)`, crosses the API as a **string**, and the client re-wraps it with `D(...)` before any math.
 - Payment processors only ever receive integer minor units via `toCents(x)`.
 
-This is enforced by a unit suite (`money`, `orderTotals`, `loyalty`, `voucher`) that runs with zero framework dependencies (`node:test`). It's the kind of discipline that separates "it looked right in the demo" from "the Z-report balances every night."
+This is enforced by a **65-test suite** (`money`, `orderTotals`, `loyalty`, `voucher`, plus the zone and reprice guards) that runs in ~0.4 s on `node:test` with zero framework dependencies — no Jest, no Vitest, no config. It's the kind of discipline that separates "it looked right in the demo" from "the Z-report balances every night."
 
 ### 2. A hard trust boundary between the shop LAN and the public internet
 
@@ -125,6 +126,12 @@ The Manager session (`manager_session`, 1 h) and Owner session (`admin_session`,
 **Accounting report** — the end-of-day view that has to balance. Net revenue after refunds, split by payment method, channel and card processor, with GST broken out from the `GST_RATE` / `GST_INCLUSIVE` config. Every figure comes off `Decimal(10,2)` columns, never a float.
 
 ![Accounting summary report with GST and payment breakdowns](docs/screenshots/reports-accounting.png)
+
+_Still to capture: split payment, online order + live tracking, and a real docket coming out of the thermal printer — the last one sells the "this is real hardware" story better than any paragraph._
+
+> **Screenshots are PII surface.** Anything captured from a live instance can carry a real customer name, phone, or order. Reseed or use fake records before capturing, and check the image itself — the sanitise grep only reads text.
+
+<!-- ![POS checkout](docs/screenshots/pos.png) -->
 
 ---
 
@@ -260,6 +267,16 @@ Product images uploaded in Menu Management are stored under `public/uploads/prod
 - [Connecting a Stripe Terminal](docs/terminal-setup.md) · [Connecting a Square Terminal](docs/square-terminal-setup.md)
 - [Migrating to a new PC](docs/migrate-to-new-pc.md) — moving a live shop to fresh hardware
 - [CHANGELOG.md](CHANGELOG.md) — version history
+
+## Who built this
+
+**Ngoc Phu Anh Nguyen** — full-stack developer, ACT, Australia. I build and ship production web apps end to end; this one runs a real café.
+
+Currently looking for a graduate or junior full-stack role, with a particular interest in payments and systems integration.
+
+- **Portfolio:** [johnnguyen-portfolio.vercel.app](https://johnnguyen-portfolio.vercel.app)
+- **Email:** [phuanh20001@gmail.com](mailto:phuanh20001@gmail.com)
+- **GitHub:** [@phuanh20001](https://github.com/phuanh20001)
 
 ## License
 
