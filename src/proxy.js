@@ -45,6 +45,13 @@ const LAN_BOOTSTRAP_API = [
   // the handler checks it itself — so it must reach the handler rather than be
   // stopped at the session gate. Inert off the demo deployment regardless.
   /^\/api\/demo\/reseed$/,
+  // The portfolio demo's self-service reset. Deliberately unauthenticated: the
+  // demo publishes its own PINs, so there is no identity to check and the whole
+  // point is that a visitor who finds the data wrecked can restore it. Safe to
+  // list here because the handler 404s unless NEXT_PUBLIC_DEMO === 'true' and
+  // reseedDemo refuses independently, so on the shop's deployment this reaches a
+  // route that does nothing. Rate limited in the handler, not here.
+  /^\/api\/demo\/reset$/,
   // Uptime monitoring and runtime-served product images.
   /^\/api\/health$/,
   /^\/api\/uploads\//,
