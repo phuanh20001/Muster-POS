@@ -63,6 +63,22 @@ A café can't stop trading because the ISP dropped. The staff POS is an installa
 
 ---
 
+## How the rules stay enforced
+
+This was built with AI assistance, which is exactly why the guardrails are the interesting part. The failure mode of a fast coding assistant is a plausible-looking diff that quietly breaks an invariant nobody wrote down — a float creeping into a total, a public handler trusting a price off the wire. So the invariants are written down, machine-readable, and tested.
+
+[AGENTS.md](AGENTS.md) is the single canonical spec that both people and coding agents read before touching anything. `CLAUDE.md` and `.cursor/rules/` are **generated from it** (`npm run claude:sync`, with `npm run claude:check` to assert they're current), so the rules cannot drift apart per tool — there is one source of truth, not three copies that disagree by March. It states the things that are expensive to get wrong:
+
+- Money never touches a native operator — everything goes through `src/lib/money.js`.
+- Public-zone handlers recompute prices server-side; a client-supplied price is discarded, not honoured.
+- JavaScript only. No native browser dialogs. No new dependency without a reason.
+
+Prose alone doesn't hold, so the load-bearing rules have tests behind them: the suite fails if a forged `unitPrice` is ever honoured, or if a forged zone header unlocks a staff route. `skills/` holds per-provider payment playbooks, because Stripe and Square each have enough sharp edges to be worth writing down once instead of rediscovering per feature.
+
+None of this is AI-specific. It's the same reason you'd write these rules down for a team of humans — an assistant just makes the cost of *not* having them show up sooner.
+
+---
+
 ## What it does (feature surface)
 
 - **POS** — cart, modifiers/add-ons, sizes, combos, tables & floor plan, split-by-price or split-by-product, surcharges, discounts; staff PIN login
@@ -266,7 +282,7 @@ Product images uploaded in Menu Management are stored under `public/uploads/prod
 - [Resilience Reference](docs/resilience-reference.md) — what looks after itself and what needs you: alert triage, schedules, and the changes that silently break a protection
 - [Connecting a Stripe Terminal](docs/terminal-setup.md) · [Connecting a Square Terminal](docs/square-terminal-setup.md)
 - [Migrating to a new PC](docs/migrate-to-new-pc.md) — moving a live shop to fresh hardware
-- [CHANGELOG.md](CHANGELOG.md) — version history
+- [CHANGELOG.md](CHANGELOG.md) — version history · [earlier entries](docs/changelog-archive.md)
 
 ## Who built this
 
