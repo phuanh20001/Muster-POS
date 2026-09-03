@@ -1,6 +1,6 @@
 # DreamyCafe POS
 
-[![Tests](https://github.com/phuanh20001/DreamyCafe-POS/actions/workflows/tests.yml/badge.svg)](https://github.com/phuanh20001/DreamyCafe-POS/actions/workflows/tests.yml)
+[![Tests](https://github.com/phuanh20001/Muster-POS/actions/workflows/tests.yml/badge.svg)](https://github.com/phuanh20001/Muster-POS/actions/workflows/tests.yml)
 
 A production point-of-sale and online-ordering system for a coffee shop — built to actually run a real till, print real dockets, and take real card payments over the counter and online.
 
