@@ -1,10 +1,12 @@
-# DreamyCafe POS
+# Muster POS
 
 [![Tests](https://github.com/phuanh20001/Muster-POS/actions/workflows/tests.yml/badge.svg)](https://github.com/phuanh20001/Muster-POS/actions/workflows/tests.yml)
 
-A production point-of-sale and online-ordering system for a coffee shop — built to actually run a real till, print real dockets, and take real card payments over the counter and online.
+A production point-of-sale and online-ordering system for a coffee shop, built to
+actually run a real till, print real dockets, and take real card payments over the
+counter and online.
 
-### ▶ [Try the live demo](https://dreamy-cafe.vercel.app) — no signup
+### ▶ [Try the live demo](https://muster-pos.vercel.app) (no signup)
 
 | Role | PIN | What you can see |
 | --- | --- | --- |
@@ -12,7 +14,7 @@ A production point-of-sale and online-ordering system for a coffee shop — buil
 | **Manager** | `1234` | Menu, cash sessions, sales, timesheets, stock |
 | **Owner** | `0000` | Everything above, plus reports, payroll, users, payment settings |
 
-_Seeded demo data, wiped and reseeded nightly. The demo runs the same code as the shop — only the printers, card terminal and LAN zone lock are absent._
+_Seeded demo data, wiped and reseeded nightly. The demo runs the same code as the shop, minus the printers, card terminal and LAN zone lock._
 
 ![Ringing up an order on the staff till](docs/screenshots/pos-order-entry.png)
 
