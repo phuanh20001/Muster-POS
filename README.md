@@ -288,7 +288,7 @@ Product images uploaded in Menu Management are stored under `public/uploads/prod
 
 ## Who built this
 
-**Ngoc Phu Anh Nguyen** — full-stack developer, ACT, Australia. I build and ship production web apps end to end; this one runs a real café.
+**Ngoc Phu Anh (John) Nguyen** — full-stack developer, ACT, Australia. I build and ship production web apps end to end; this one runs a real café.
 
 Currently looking for a graduate or junior full-stack role, with a particular interest in payments and systems integration.
 
