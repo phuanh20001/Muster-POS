@@ -6,6 +6,13 @@ A production point-of-sale and online-ordering system for a coffee shop, built t
 actually run a real till, print real dockets, and take real card payments over the
 counter and online.
 
+**Linkly accredited** for on-premises bank EFTPOS (TCPIP OnPrem, September 2026) and
+listed on Linkly’s public Accredited POS directory. Linkly is the middleware behind
+most Australian bank EFTPOS terminals, and driving one from your own software requires
+passing their test suite, including the mandatory power-failure and recovery cases.
+⚠ **That integration is not in this snapshot yet** — it lives on an unmerged branch
+and will arrive in a later refresh.
+
 ### ▶ [Try the live demo](https://dreamy-cafe.vercel.app) (no signup)
 
 | Role | PIN | What you can see |
