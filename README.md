@@ -6,6 +6,8 @@ A production point-of-sale and online-ordering system for a coffee shop, built t
 actually run a real till, print real dockets, and take real card payments over the
 counter and online.
 
+**Product site:** [musterpos.com](https://musterpos.com)
+
 **Linkly accredited** for on-premises bank EFTPOS (TCPIP OnPrem, September 2026) and
 listed on Linkly’s public Accredited POS directory. Linkly is the middleware behind
 most Australian bank EFTPOS terminals, and driving one from your own software requires
