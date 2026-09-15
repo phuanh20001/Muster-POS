@@ -12,8 +12,8 @@ counter and online.
 listed on Linkly’s public Accredited POS directory. Linkly is the middleware behind
 most Australian bank EFTPOS terminals, and driving one from your own software requires
 passing their test suite, including the mandatory power-failure and recovery cases.
-⚠ **That integration is not in this snapshot yet** — it lives on an unmerged branch
-and will arrive in a later refresh.
+The integration runs in production, but **its source is kept private** and is not part
+of this snapshot. I’m happy to walk through it in an interview.
 
 ### ▶ [Try the live demo](https://dreamy-cafe.vercel.app) (no signup)
 
