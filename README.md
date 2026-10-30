@@ -6,10 +6,17 @@ A production point-of-sale and online-ordering system for a coffee shop, built t
 actually run a real till, print real dockets, and take real card payments over the
 counter and online.
 
+**In production since August 2026.** Ichi Cafe in Kippax, ACT trades on Muster POS every
+day. You can see it in use on the cafe's [online ordering page](https://ichicafekippax.com/order).
+
+**About this repo:** it is a public snapshot of a private working repo, which has about
+750 commits since May 2026 and more than 700 tests. The snapshot was taken in September
+2026, so it shows only 12 commits and 65 tests, and it leaves out the Linkly integration.
+
 **Product site:** [musterpos.com](https://musterpos.com)
 
 **Linkly accredited** for on-premises bank EFTPOS (TCPIP OnPrem, September 2026) and
-listed on Linkly’s public Accredited POS directory. Linkly is the middleware behind
+listed on [Linkly’s public Accredited POS directory](https://www.linkly.com.au/technical-resources/accredited-pos-vendors.html). Linkly is the middleware behind
 most Australian bank EFTPOS terminals, and driving one from your own software requires
 passing their test suite, including the mandatory power-failure and recovery cases.
 The integration runs in production, but **its source is kept private** and is not part
@@ -23,7 +30,7 @@ of this snapshot. I’m happy to walk through it in an interview.
 | **Manager** | `1234` | Menu, cash sessions, sales, timesheets, stock |
 | **Owner** | `0000` | Everything above, plus reports, payroll, users, payment settings |
 
-_Seeded demo data, wiped and reseeded nightly. The demo runs the same code as the shop, minus the printers, card terminal and LAN zone lock. It is pinned to an earlier build and still carries the project's former name, DreamyCafe POS._
+_Seeded demo data, wiped and reseeded nightly. The demo runs the same code as the shop, minus the printers, card terminal and LAN zone lock. It is pinned to an earlier build, so it does not show the Linkly terminal or later changes._
 
 ![Ringing up an order on the staff till](docs/screenshots/pos-order-entry.png)
 
@@ -31,7 +38,7 @@ Not a tutorial clone. This is a full-stack app that a working café uses: staff 
 
 - **Stack:** Next.js 16 (App Router) · JavaScript · PostgreSQL + Prisma · Tailwind · Stripe & Square · ESC/POS thermal printers · Electron kiosk shell
 - **Scale:** 45+ Prisma migrations · role-based back office · dual payment processors · offline-tolerant PWA · self-hosted behind a Cloudflare Tunnel
-- **Tested:** 65 unit tests, zero framework dependencies, ~0.4 s — covering the money, pricing, loyalty, voucher and zone-boundary paths
+- **Tested:** 65 unit tests in this snapshot (700+ in the private repo), zero framework dependencies, ~0.4 s — covering the money, pricing, loyalty, voucher and zone-boundary paths
 
 ---
 

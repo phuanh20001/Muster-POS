@@ -1,7 +1,7 @@
 {
-  "name": "Dreamy Cafe POS",
-  "short_name": "Dreamy Cafe",
-  "description": "Point of Sale for Dreamy Cafe",
+  "name": "Muster POS",
+  "short_name": "Muster",
+  "description": "Point of sale for independent cafes",
   "start_url": "/pos",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen"],

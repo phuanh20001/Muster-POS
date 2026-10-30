@@ -37,9 +37,10 @@ export default function DemoBanner() {
             <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-white" aria-label="Close">✕</button>
           </div>
           <p className="text-gray-300 leading-snug">
-            A portfolio demo of a full coffee-shop POS. Data resets nightly. Card
-            payments and printing are disabled (no hardware in the cloud); use the
-            cash checkout to see the full flow.
+            Sample data, reset nightly. The real system has been in production at
+            Ichi Cafe in Kippax, ACT since August 2026. Card payments and printing
+            are off here (no hardware in the cloud); use the cash checkout to see
+            the full flow.
           </p>
           <div className="rounded-lg bg-black/40 p-2 font-mono text-[11px] leading-5">
             <div>Staff PIN <span className="text-white font-semibold">1111</span></div>
