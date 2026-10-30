@@ -30,7 +30,7 @@ of this snapshot. I’m happy to walk through it in an interview.
 | **Manager** | `1234` | Menu, cash sessions, sales, timesheets, stock |
 | **Owner** | `0000` | Everything above, plus reports, payroll, users, payment settings |
 
-_Seeded demo data, wiped and reseeded nightly. The demo runs the same code as the shop, minus the printers, card terminal and LAN zone lock. It is pinned to an earlier build, so it does not show the Linkly terminal or later changes._
+_Sample data, reset nightly, so each day starts with no sales or stock and the till closed. To try the full flow, sign in as Owner and open the till under Routine. The demo runs the same code as the shop, minus the printers, card terminal and LAN zone lock. It is pinned to an earlier build, so it does not show the Linkly terminal or later changes._
 
 ![Ringing up an order on the staff till](docs/screenshots/pos-order-entry.png)
 
@@ -149,23 +149,37 @@ The Manager session (`manager_session`, 1 h) and Owner session (`admin_session`,
 
 ## Screenshots
 
-**Order entry** — the staff till. Category rail, live search, and a cart that reprices server-side on every change.
+These are from the public demo with sample data, so they show the same build you can try yourself. That build is older than the one running at Ichi Cafe. The combo screen is the one exception: it is from a test build, also with sample data.
 
-![Staff POS order entry screen](docs/screenshots/pos-order-entry.png)
+The till is shown at the top of this page.
 
-**Combos and modifiers** — one product, a tree of choices. Size, milk, syrups, sauces and free-text instructions all fold into a single line item, and the price recomputes as options are picked.
+**Combos and add-ons.** One item with several choices. Size, milk, syrups, sauces and special instructions all fold into one line on the order, and the price updates as options are picked.
 
 ![Combo builder with size, add-on and sauce options](docs/screenshots/combo-modifiers.png)
 
-**Accounting report** — the end-of-day view that has to balance. Net revenue after refunds, split by payment method, channel and card processor, with GST broken out from the `GST_RATE` / `GST_INCLUSIVE` config. Every figure comes off `Decimal(10,2)` columns, never a float.
+**Online ordering.** Customers order for pickup from their phone.
+
+<img src="docs/screenshots/online-ordering-phone.png" alt="Customer online ordering page on a phone" width="320">
+
+**Sales history.** Every sale, searchable by day, with who took it and how it was paid.
+
+![Sales history list](docs/screenshots/sales-history.png)
+
+**Reports.** The end-of-day view the owner uses, with sales by payment type and channel, refunds, discounts and GST.
 
 ![Accounting summary report with GST and payment breakdowns](docs/screenshots/reports-accounting.png)
 
-_Still to capture: split payment, online order + live tracking, and a real docket coming out of the thermal printer — the last one sells the "this is real hardware" story better than any paragraph._
+**Stock count.** Ingredients and supplies, with a clear flag when something is low or out.
 
-> **Screenshots are PII surface.** Anything captured from a live instance can carry a real customer name, phone, or order. Reseed or use fake records before capturing, and check the image itself — the sanitise grep only reads text.
+![Stock count with OK, low and out flags](docs/screenshots/stock-count.png)
 
-<!-- ![POS checkout](docs/screenshots/pos.png) -->
+**Timesheets.** Staff clock in and out at the till, and managers see the hours here.
+
+![Staff timesheets showing clock in, clock out and hours](docs/screenshots/timesheets.png)
+
+**Reservations.** Booking numbers for the week, plus an on-screen reminder for staff before each booking.
+
+![Reservation analytics with bookings by day](docs/screenshots/reservations.png)
 
 ---
 
